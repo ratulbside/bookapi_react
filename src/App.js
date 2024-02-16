@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For API calls
 import {useDropzone} from 'react-dropzone'; // For file selection
-import ProgressBar from '@ramonak/react-progress-bar'; // For progress bar
+import ProgressBar from 'react-bootstrap/ProgressBar'; // For progress bar
 import { Table, Button } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
+
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [file, setFile] = useState(null);
   const [bookData, setBookData] = useState([]);
   const [progress, setProgress] = useState(0);
   const [errors, setErrors] = useState([]);
+  const [isDropzoneDisabled, setIsDropzoneDisabled] = useState(false);
+  const [isProcessButtonDisabled, setIsProcessButtonDisabled] = useState(false);
+
   let totalRows = 0;
+  // let progress = 0;
 
   const handleFileSelect = (acceptedFiles) => {
     setFile(acceptedFiles[0]);
@@ -18,6 +24,10 @@ function App() {
 
   const processExcelData = async () => {
     if (!file) return; // Handle missing file error
+
+    // Disable Dropzone and button after processing starts
+    setIsDropzoneDisabled(true);
+    setIsProcessButtonDisabled(true);
 
     const sheet = await parseExcelFile(file); // Implement Excel parsing
 
@@ -27,6 +37,7 @@ function App() {
 
     const range = XLSX.utils.decode_range(sheet['!ref']);
     totalRows = (range.e.r - range.s.r) + 1;
+    
 
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
       let isbn;
@@ -44,7 +55,8 @@ function App() {
         const pages = bookResponse.items[0]?.volumeInfo?.pageCount;
 
         setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, price, buyingPrice, key: id }]);
-        setProgress((prevProgress) => prevProgress + 1);
+    
+        setProgress((row / totalRows) * 100);
       } catch (error) {
         setErrors((prevErrors) => [...prevErrors, `Error processing ISBN ${isbn}: ${error.message}`]);
       }
@@ -83,6 +95,7 @@ function App() {
   const getBookDataFromAPI = async (isbn) => {
     const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
     const response = await axios.get(apiUrl); // Handle errors and retries
+    
     return response.data;
   };
 
@@ -113,7 +126,8 @@ function App() {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':[],
       },
       multiple: false,
-      onDrop: handleFileSelect
+      onDrop: handleFileSelect,
+      disabled: isDropzoneDisabled
     });
   
     const uploadedFiles =  file ? `${file.name} - ${Math.round(file.size / 1024)} KB` : '';
@@ -137,10 +151,12 @@ function App() {
     <div>
       <h2>Book Data Extractor</h2>
       <ExcelInput/>
-      <button onClick={processExcelData}>Process Data</button>
+      <button onClick={isProcessButtonDisabled?null: processExcelData} disabled={isProcessButtonDisabled}>Process Data</button>
+      {console.log('Progress inside: ', progress)}
       {progress > 0 && (
         <div>
-          <ProgressBar progress={progress / totalRows} />
+          {/* <ProgressBar completed={progress} /> */}
+          <ProgressBar striped variant="success" now={progress} label={`${progress}%`} />
           {errors.length > 0 && (
             <ul>
               {errors.map((error) => (
