@@ -74,7 +74,7 @@ function App() {
   };
 
   const getBookDataFromAPI = async (isbn) => {
-    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=AIzaSyCJMLrc_vJtYBiD6yPFqcDMlmGd2e4pL4w`;
+    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
     const response = await axios.get(apiUrl); // Handle errors and retries
     return response.data;
   };
