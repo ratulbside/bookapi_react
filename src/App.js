@@ -36,7 +36,14 @@ function App() {
         const buyingPrice = sheet[`C${row}`]?.v; // Check column index
 
         const bookResponse = await getBookDataFromAPI(isbn);
-        setBookData((prevData) => [...prevData, { ...bookResponse.data, price, buyingPrice }]);
+        const id = bookResponse.items[0]?.id;
+        const title = bookResponse.items[0]?.volumeInfo?.title;
+        const author = bookResponse.items[0]?.volumeInfo?.authors[0];
+        const publisher = bookResponse.items[0]?.volumeInfo?.publisher;
+        const isbn10 = bookResponse.items[0]?.volumeInfo?.industryIdentifiers[0]?.identifier;
+        const pages = bookResponse.items[0]?.volumeInfo?.pageCount;
+
+        setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, price, buyingPrice, key: id }]);
         setProgress((prevProgress) => prevProgress + 1);
       } catch (error) {
         setErrors((prevErrors) => [...prevErrors, `Error processing ISBN ${isbn}: ${error.message}`]);
@@ -87,11 +94,11 @@ function App() {
   };
 
   const columns = [
-    { title: 'ISBN', dataIndex: 'id' },
-    { title: 'Title', dataIndex: 'volumeInfo.title' },
-    { title: 'Publisher', dataIndex: 'volumeInfo.publisher' },
-    { title: 'Pages', dataIndex: 'volumeInfo.pageCount' },
-    { title: 'Authors', dataIndex: 'volumeInfo.authors' },
+    { title: 'ISBN', dataIndex: 'isbn10' },
+    { title: 'Title', dataIndex: 'title' },
+    { title: 'Publisher', dataIndex: 'publisher' },
+    { title: 'Pages', dataIndex: 'pages' },
+    { title: 'Authors', dataIndex: 'author' },
     { title: 'Price', dataIndex: 'price' },
     { title: 'Buying Price', dataIndex: 'buyingPrice' },
   ];
