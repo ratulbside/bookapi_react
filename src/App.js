@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For API calls
-import Dropzone from 'react-dropzone'; // For file selection
+import {useDropzone} from 'react-dropzone'; // For file selection
 import ProgressBar from '@ramonak/react-progress-bar'; // For progress bar
 import { Table, Button } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
@@ -96,17 +96,40 @@ function App() {
     { title: 'Buying Price', dataIndex: 'buyingPrice' },
   ];
 
+  function ExcelInput(props) {
+    const {
+      getRootProps,
+      getInputProps
+    } = useDropzone({
+      accept: {
+        'application/vnd.ms-excel':[],
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':[],
+      },
+      multiple: false,
+      onDrop: handleFileSelect
+    });
+  
+    const uploadedFiles =  file ? `${file.name} - ${Math.round(file.size / 1024)} KB` : '';
+  
+    return (
+      <section className="container">
+        <div {...getRootProps({ className: 'dropzone' })}>
+          <input {...getInputProps()} />
+          <p>Drag 'n' drop an Excel file here</p>
+          <em>(Only *.xls or *.xlsx files will be accepted)</em>
+        </div>
+        <aside>
+          <h4>Accepted file</h4>
+          {uploadedFiles}
+        </aside>
+      </section>
+    );
+  }
+
   return (
     <div>
       <h2>Book Data Extractor</h2>
-      <Dropzone onDrop={handleFileSelect}>
-        {({ getRootProps, getInputProps }) => (
-          <div {...getRootProps()}>
-            <input {...getInputProps()} />
-            <p>Drag and drop or click to select an Excel file</p>
-          </div>
-        )}
-      </Dropzone>
+      <ExcelInput/>
       <button onClick={processExcelData}>Process Data</button>
       {progress > 0 && (
         <div>
