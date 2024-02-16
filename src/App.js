@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For API calls
 import {useDropzone} from 'react-dropzone'; // For file selection
-import ProgressBar from '@ramonak/react-progress-bar'; // For progress bar
+import ProgressBar from 'react-bootstrap/ProgressBar'; // For progress bar
 import { Table, Button } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
+
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [file, setFile] = useState(null);
@@ -153,7 +155,8 @@ function App() {
       {console.log('Progress inside: ', progress)}
       {progress > 0 && (
         <div>
-          <ProgressBar completed={progress} />
+          {/* <ProgressBar completed={progress} /> */}
+          <ProgressBar striped variant="success" now={progress} label={`${progress}%`} />
           {errors.length > 0 && (
             <ul>
               {errors.map((error) => (
