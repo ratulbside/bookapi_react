@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For API calls
 import { useDropzone } from 'react-dropzone'; // For file selection
-import { Table, Button, ConfigProvider, theme } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
+import DataTable from "./components/DataTable.js";
 
 /*React Bootstrap components*/
 import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle, CardText } from 'reactstrap';
@@ -21,7 +21,6 @@ function App() {
 
   const [alertVisible, setAlertVisible] = useState(false);
   const onDismiss = () => setAlertVisible(false);
-  const { defaultAlgorithm, darkAlgorithm } = theme;
 
   let totalRows = 0;
 
@@ -120,15 +119,7 @@ function App() {
     XLSX.writeFile(workbook, 'book_data.xlsx');
   };
 
-  const columns = [
-    { title: 'ISBN', dataIndex: 'isbn10' },
-    { title: 'Title', dataIndex: 'title' },
-    { title: 'Publisher', dataIndex: 'publisher' },
-    { title: 'Pages', dataIndex: 'pages' },
-    { title: 'Authors', dataIndex: 'author' },
-    { title: 'Price', dataIndex: 'price' },
-    { title: 'Buying Price', dataIndex: 'buyingPrice' },
-  ];
+
 
   function ExcelInput(props) {
     const {
@@ -222,15 +213,7 @@ function App() {
         </div>
       )}
       {bookData.length > 0 && (
-        <div>
-          <ConfigProvider
-            theme={{
-              algorithm: darkAlgorithm,
-            }}>
-            <Table columns={columns} dataSource={bookData} />
-            <Button onClick={handleExportData}>Export Data</Button>
-          </ConfigProvider>
-        </div>
+        <DataTable dataSource={bookData} handleData={handleExportData} />
       )}
     </main>
   );
