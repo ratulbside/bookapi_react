@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For API calls
-import {useDropzone} from 'react-dropzone'; // For file selection
-import ProgressBar from 'react-bootstrap/ProgressBar'; // For progress bar
+import { useDropzone } from 'react-dropzone'; // For file selection
 import { Table, Button } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
 
+/*React Bootstrap components*/
+import { Progress } from 'reactstrap';
+// import Container from 'react-bootstrap/Container';
+// import Row from 'react-bootstrap/Row';
+// import Col from 'react-bootstrap/Col';
+// import ProgressBar from 'react-bootstrap/ProgressBar'; // For progress bar
+
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
+import logo from './reshot-icon-book.svg';
 
 function App() {
   const [file, setFile] = useState(null);
@@ -16,7 +24,6 @@ function App() {
   const [isProcessButtonDisabled, setIsProcessButtonDisabled] = useState(false);
 
   let totalRows = 0;
-  // let progress = 0;
 
   const handleFileSelect = (acceptedFiles) => {
     setFile(acceptedFiles[0]);
@@ -37,7 +44,7 @@ function App() {
 
     const range = XLSX.utils.decode_range(sheet['!ref']);
     totalRows = (range.e.r - range.s.r) + 1;
-    
+
 
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
       let isbn;
@@ -55,7 +62,7 @@ function App() {
         const pages = bookResponse.items[0]?.volumeInfo?.pageCount;
 
         setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, price, buyingPrice, key: id }]);
-    
+
         setProgress((row / totalRows) * 100);
       } catch (error) {
         setErrors((prevErrors) => [...prevErrors, `Error processing ISBN ${isbn}: ${error.message}`]);
@@ -72,17 +79,17 @@ function App() {
           const workbook = XLSX.read(arrayBuffer, { type: 'array' });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-  
+
           resolve(worksheet);
         } catch (error) {
           reject(error);
         }
       };
-  
+
       reader.onerror = reject;
       reader.readAsArrayBuffer(file);
     });
-  
+
     try {
       const worksheet = await readFileAsync;
       return worksheet;
@@ -95,7 +102,7 @@ function App() {
   const getBookDataFromAPI = async (isbn) => {
     const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
     const response = await axios.get(apiUrl); // Handle errors and retries
-    
+
     return response.data;
   };
 
@@ -122,41 +129,64 @@ function App() {
       getInputProps
     } = useDropzone({
       accept: {
-        'application/vnd.ms-excel':[],
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':[],
+        'application/vnd.ms-excel': [],
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
       },
       multiple: false,
       onDrop: handleFileSelect,
       disabled: isDropzoneDisabled
     });
-  
-    const uploadedFiles =  file ? `${file.name} - ${Math.round(file.size / 1024)} KB` : '';
-  
+
+    const uploadedFiles = file ? `${file.name} - ${Math.round(file.size / 1024)} KB` : '';
+
     return (
-      <section className="container">
-        <div {...getRootProps({ className: 'dropzone' })}>
+      <section className="dropzone-container">
+        <div {...getRootProps({ className: 'dropzone' })} className='dropzone'>
           <input {...getInputProps()} />
           <p>Drag 'n' drop an Excel file here</p>
           <em>(Only *.xls or *.xlsx files will be accepted)</em>
         </div>
-        <aside>
-          <h4>Accepted file</h4>
+        {(file) &&(
+        <aside className='text-start'>
+          <h5 className='mt-2'>Uploaded file</h5>
+          <hr className="border border-success border-2 opacity-50"></hr>
           {uploadedFiles}
         </aside>
+        )}
       </section>
     );
   }
 
+  useEffect(() => {
+    document.body.classList.add(
+      'd-flex',
+      'h-100',
+      'text-center',
+      'text-bg-dark',
+    );
+  }, []);
+
   return (
-    <div>
-      <h2>Book Data Extractor</h2>
-      <ExcelInput/>
-      <button onClick={isProcessButtonDisabled?null: processExcelData} disabled={isProcessButtonDisabled}>Process Data</button>
-      {console.log('Progress inside: ', progress)}
+    // <MainBody />
+    <main className='px-3'>
+      <div>
+        <img src={logo} className="App-logo" alt="logo" />
+        <h1>Book Data Extractor</h1>
+      </div>
+      <ExcelInput />
+      <div className='m-3'>
+        <button onClick={isProcessButtonDisabled ? null : processExcelData} disabled={isProcessButtonDisabled} className='btn btn-lg btn-light fw-bold border-white bg-white'>Process Data</button>
+      </div>
       {progress > 0 && (
         <div>
           {/* <ProgressBar completed={progress} /> */}
-          <ProgressBar striped variant="success" now={progress} label={`${progress}%`} />
+          {/* <ProgressBar striped variant="success" now={progress} label={`${progress}%`} /> */}
+          <Progress
+            className="my-3"
+            color="success"
+            striped
+            value={progress}
+          />
           {errors.length > 0 && (
             <ul>
               {errors.map((error) => (
@@ -172,7 +202,7 @@ function App() {
           <Button onClick={handleExportData}>Export Data</Button>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
