@@ -5,7 +5,7 @@ import { Table, Button } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
 
 /*React Bootstrap components*/
-import { Progress, Alert } from 'reactstrap';
+import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle, CardText } from 'reactstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -200,11 +200,23 @@ function App() {
             value={progress}
           />
           {errors.length > 0 && (
-            <ul>
-              {errors.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
+            <Card color="dark" className='mb-3'>
+            <CardBody>
+              <CardTitle tag="h3" className='text-danger'>
+                Error List
+              </CardTitle>
+              <ListGroup
+             flush
+             numbered
+             className='mb-3 text-start'
+           >
+             {errors.map((error) => (
+                 <ListGroupItem key={error}>{error}</ListGroupItem>
+               ))}
+           </ListGroup>
+              
+            </CardBody>
+          </Card>
           )}
         </div>
       )}
