@@ -57,10 +57,11 @@ function App() {
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
       let isbn = '';
       try {
-        isbn = sheet[`A${row}`]?.v; // Check column index
+        isbn = sheet[`A${row}`]?.v;
         setCurrentIsbn(isbn);
-        const price = sheet[`B${row}`]?.v; // Check column index
-        const buyingPrice = sheet[`C${row}`]?.v; // Check column index
+        const purchasePrice = removeTextAndConvertToNumber( sheet[`B${row}`]?.v);
+        const sellingPrice = removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        const stock=removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
 
         const bookResponse = await getBookDataFromAPI(isbn);
         const id = bookResponse.items[0]?.id;
@@ -70,7 +71,7 @@ function App() {
         const isbn10 = bookResponse.items[0]?.volumeInfo?.industryIdentifiers[0]?.identifier;
         const pages = bookResponse.items[0]?.volumeInfo?.pageCount;
 
-        setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, price, buyingPrice, key: id }]);
+        setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, sellingPrice, purchasePrice, stock, key: id }]);
 
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
@@ -123,7 +124,18 @@ function App() {
     XLSX.writeFile(workbook, 'book_data.xlsx');
   };
 
-
+  function removeTextAndConvertToNumber(text) {
+    // Remove all characters except numbers, ".", "+" or "-".
+    const numberString = text.replace(/[^0-9\-+\.]/g, "");
+  
+    // If the string is empty or contains only non-numeric characters, return null.
+    if (!numberString) {
+      return null;
+    }
+  
+    // Try to convert the string to a number.
+    return parseFloat(numberString);
+  }
 
   function ExcelInput(props) {
     const {

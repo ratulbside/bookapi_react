@@ -9,8 +9,9 @@ function DataTable({ dataSource, handleData }) {
         { title: 'Publisher', dataIndex: 'publisher' },
         { title: 'Pages', dataIndex: 'pages' },
         { title: 'Authors', dataIndex: 'author' },
-        { title: 'Price', dataIndex: 'price' },
-        { title: 'Buying Price', dataIndex: 'buyingPrice' },
+        { title: 'Price', dataIndex: 'sellingPrice' },
+        { title: 'Purchase Price', dataIndex: 'purchasePrice' },
+        { title: 'Stock', dataIndex: 'stock' },
     ];
 
     return (
