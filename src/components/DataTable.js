@@ -21,7 +21,7 @@ function DataTable({ dataSource, handleData }) {
                 }}>
                 <Table columns={columns} dataSource={dataSource} />
 
-                <Button onClick={handleData}>Export Data</Button>
+                <Button onClick={handleData} className='mb-4'>Export Data</Button>
             </ConfigProvider>
         </div>
     )
