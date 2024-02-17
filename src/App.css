@@ -30,6 +30,8 @@
 .bi {
   vertical-align: -.125em;
   fill: currentColor;
+  width: 1em;
+  height: 1em;
 }
 
 .nav-scroller {
