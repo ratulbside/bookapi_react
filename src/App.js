@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // For API calls
 import { useDropzone } from 'react-dropzone'; // For file selection
-import { Table, Button } from 'antd'; // For table component
+import { Table, Button, ConfigProvider, theme } from 'antd'; // For table component
 import * as XLSX from 'xlsx'; // For Excel file creation
 
 /*React Bootstrap components*/
@@ -21,6 +21,7 @@ function App() {
 
   const [alertVisible, setAlertVisible] = useState(false);
   const onDismiss = () => setAlertVisible(false);
+  const { defaultAlgorithm, darkAlgorithm } = theme;
 
   let totalRows = 0;
 
@@ -201,29 +202,34 @@ function App() {
           />
           {errors.length > 0 && (
             <Card color="dark" className='mb-3'>
-            <CardBody>
-              <CardTitle tag="h3" className='text-danger'>
-                Error List
-              </CardTitle>
-              <ListGroup
-             flush
-             numbered
-             className='mb-3 text-start'
-           >
-             {errors.map((error) => (
-                 <ListGroupItem key={error}>{error}</ListGroupItem>
-               ))}
-           </ListGroup>
-              
-            </CardBody>
-          </Card>
+              <CardBody>
+                <CardTitle tag="h3" className='text-danger'>
+                  Error List
+                </CardTitle>
+                <ListGroup
+                  flush
+                  numbered
+                  className='mb-3 text-start'
+                >
+                  {errors.map((error) => (
+                    <ListGroupItem key={error}>{error}</ListGroupItem>
+                  ))}
+                </ListGroup>
+
+              </CardBody>
+            </Card>
           )}
         </div>
       )}
       {bookData.length > 0 && (
         <div>
-          <Table columns={columns} dataSource={bookData} />
-          <Button onClick={handleExportData}>Export Data</Button>
+          <ConfigProvider
+            theme={{
+              algorithm: darkAlgorithm,
+            }}>
+            <Table columns={columns} dataSource={bookData} />
+            <Button onClick={handleExportData}>Export Data</Button>
+          </ConfigProvider>
         </div>
       )}
     </main>
