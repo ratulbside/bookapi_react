@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx'; // For Excel file creation
 import DataTable from "./components/DataTable.js";
 
 /*React Bootstrap components*/
-import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle, CardText } from 'reactstrap';
+import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle } from 'reactstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -14,7 +14,6 @@ import logo from './reshot-icon-book.svg';
 function App() {
   const [file, setFile] = useState(null);
   const [bookData, setBookData] = useState([]);
-  const [progress, setProgress] = useState(0);
   const [errors, setErrors] = useState([]);
   const [isDropzoneDisabled, setIsDropzoneDisabled] = useState(false);
   const [isProcessButtonDisabled, setIsProcessButtonDisabled] = useState(false);
@@ -22,7 +21,10 @@ function App() {
   const [alertVisible, setAlertVisible] = useState(false);
   const onDismiss = () => setAlertVisible(false);
 
-  let totalRows = 0;
+  const [progress, setProgress] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [currentRowNumber, setCurrentRowNumber] = useState(0);
+  const [currentIsbn, setCurrentIsbn] = useState('');
 
   const handleFileSelect = (acceptedFiles) => {
     setFile(acceptedFiles[0]);
@@ -36,8 +38,6 @@ function App() {
       return; // Handle missing file error
     }
 
-    console.log('alert: ', alertVisible);
-
     // Disable Dropzone and button after processing starts
     setIsDropzoneDisabled(true);
     setIsProcessButtonDisabled(true);
@@ -46,16 +46,19 @@ function App() {
 
     setBookData([]);
     setProgress(0);
+    setTotalRecords(0);
+    setCurrentRowNumber(0);
     setErrors([]);
 
     const range = XLSX.utils.decode_range(sheet['!ref']);
-    totalRows = (range.e.r - range.s.r) + 1;
-
+    let totalRows = (range.e.r - range.s.r) + 1;
+    setTotalRecords(totalRows - 1);
 
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
-      let isbn;
+      let isbn = '';
       try {
         isbn = sheet[`A${row}`]?.v; // Check column index
+        setCurrentIsbn(isbn);
         const price = sheet[`B${row}`]?.v; // Check column index
         const buyingPrice = sheet[`C${row}`]?.v; // Check column index
 
@@ -69,7 +72,8 @@ function App() {
 
         setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, price, buyingPrice, key: id }]);
 
-        setProgress((row / totalRows) * 100);
+        setCurrentRowNumber(row - 1);
+        setProgress(Math.round((row / totalRows) * 100));
       } catch (error) {
         setErrors((prevErrors) => [...prevErrors, `Error processing ISBN ${isbn}: ${error.message}`]);
       }
@@ -186,12 +190,23 @@ function App() {
         </Alert>
         {progress > 0 && (
           <div>
+            <div className='clearfix'>
+              <div className='float-md-start mb-0'>Progress: <strong> {currentRowNumber} / {totalRecords}</strong></div>
+              <div className='float-md-end'>Now processing: <strong>{currentIsbn}</strong></div>
+            </div>
+
             <Progress
               className="my-3"
               color="success"
               striped
+              animated
               value={progress}
-            />
+              style={{
+                height: '2.2em'
+              }}
+            >
+              {progress}%
+            </Progress>
             {errors.length > 0 && (
               <Card color="dark" className='mb-3'>
                 <CardBody>
@@ -217,7 +232,7 @@ function App() {
           <DataTable dataSource={bookData} handleData={handleExportData} />
         )}
       </main>
-      <footer class="mt-auto text-white-50">
+      <footer className="mt-auto text-white-50">
         <p>Book Info Extractor by Ratul Paul using <a href="https://reactjs.org" target="_blank" className="text-white" rel='noreferrer'>React</a>.</p>
       </footer>
     </div>
