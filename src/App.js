@@ -5,7 +5,9 @@ import * as XLSX from 'xlsx'; // For Excel file creation
 import DataTable from "./components/DataTable.js";
 
 /*React Bootstrap components*/
-import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle, Badge } from 'reactstrap';
+import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle } from 'reactstrap';
+
+import * as Util from './components/Utility.js';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -59,9 +61,9 @@ function App() {
       try {
         isbn = sheet[`A${row}`]?.v;
         setCurrentIsbn(isbn);
-        const purchasePrice = removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
-        const sellingPrice = removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
-        const stock = removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
+        const purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
+        const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        const stock = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
 
         const bookResponse = await getBookDataFromGoogleAPI(isbn);
 
@@ -69,8 +71,8 @@ function App() {
         if (bookResponse.totalItems > 0) {
           id = bookResponse.items[0]?.id;
           const volumeInfo = bookResponse.items[0]?.volumeInfo;
-          title = getBookTitle(volumeInfo?.title, volumeInfo?.subtitle);
-          authors = arrayToString(volumeInfo?.authors);
+          title = Util.getBookTitle(volumeInfo?.title, volumeInfo?.subtitle);
+          authors = Util.arrayToString(volumeInfo?.authors);
           publisher = volumeInfo?.publisher;
           isbn10 = volumeInfo?.industryIdentifiers.find(
             (identifier) => identifier.type === "ISBN_10"
@@ -81,7 +83,7 @@ function App() {
           pages = volumeInfo?.pageCount;
           publishedDate = volumeInfo?.publishedDate;
           description = volumeInfo?.description;
-          categories = arrayToString(volumeInfo?.categories);
+          categories = Util.arrayToString(volumeInfo?.categories);
           maturityRating = volumeInfo?.maturityRating;
           const { medium, large, extraLarge } = volumeInfo?.imageLinks;
           image = extraLarge || large || medium;
@@ -93,8 +95,8 @@ function App() {
           if (bookResponseFromOL.numFound > 0) {
             const bookItem = bookResponseFromOL.docs[0];
             id = bookItem?.key;
-            title = getBookTitle(bookItem?.title, bookItem?.subtitle);
-            authors = arrayToString(bookItem?.author_name);
+            title = Util.getBookTitle(bookItem?.title, bookItem?.subtitle);
+            authors = Util.arrayToString(bookItem?.author_name);
             publisher = bookItem?.publisher ? bookItem?.publisher[bookItem?.publisher.length - 1] : '';
             isbn10 = isbn.toString().length === 13
               ? isbn.toString().slice(-10)
@@ -104,12 +106,12 @@ function App() {
               : null; // Set isbn13 to null if not 13 digits
             pages = bookItem?.number_of_pages_median;
             publishedDate = bookItem?.publish_date ? bookItem?.publish_date[bookItem?.publish_date.length - 1] : '';
-            categories = arrayToString(bookItem?.subject);
+            categories = Util.arrayToString(bookItem?.subject);
             image = bookItem?.cover_edition_key;
             source = 'Open Library';
             bookFound = true;
           } else {
-            setErrors((prevErrors) => [...prevErrors, formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)]);
+            setErrors((prevErrors) => [...prevErrors, Util.formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)]);
           }
         }
 
@@ -120,7 +122,7 @@ function App() {
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
       } catch (error) {
-        setErrors((prevErrors) => [...prevErrors, formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`)]);
+        setErrors((prevErrors) => [...prevErrors, Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`)]);
       }
     }
   };
@@ -174,46 +176,6 @@ function App() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Book Data');
     XLSX.writeFile(workbook, 'book_data.xlsx');
   };
-
-  function removeTextAndConvertToNumber(text) {
-    // Remove all characters except numbers, ".", "+" or "-".
-    const numberString = text.replace(/[^0-9\-+\.]/g, "");
-
-    // If the string is empty or contains only non-numeric characters, return null.
-    if (!numberString) {
-      return null;
-    }
-
-    // Try to convert the string to a number.
-    return parseFloat(numberString);
-  }
-
-  function arrayToString(array) {
-    return array ? array.join(', ') : '';
-  }
-
-  function formatErrorOrWarningMessage(level, message) {
-    return (
-      <span>
-        <Badge color={(level === 'error' ? 'danger' : 'warning')}>
-          {(level === 'error' ? 'Error' : 'Warning')}
-        </Badge> {' ' + message}
-      </span>
-    );
-  }
-
-  /**
- * Retrieve the book title with optional subtitle.
- *
- * @param {string} title - the main title of the book
- * @param {string} subtitle - the optional subtitle of the book
- * @return {string} the complete book title including the subtitle if available
- */
-  function getBookTitle(titleNode, subtitleNode) {
-    const title = titleNode || '';
-    const subtitle = subtitleNode || '';
-    return subtitle ? `${title} - ${subtitle}` : title;
-  }
 
   function ExcelInput(props) {
     const {
