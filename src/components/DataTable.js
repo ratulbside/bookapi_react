@@ -6,7 +6,7 @@ function DataTable({ dataSource, handleData }) {
     const columns = [
         { id: 'ID', dataIndex: 'id' },
         { title: 'Title', dataIndex: 'title' },
-        { title: 'Authors', dataIndex: 'author' },
+        { title: 'Authors', dataIndex: 'authors' },
         { title: 'Publisher', dataIndex: 'publisher' },
         // { title: 'ISBN10', dataIndex: 'isbn10' },
         { title: 'ISBN13', dataIndex: 'isbn13' },
