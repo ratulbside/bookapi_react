@@ -4,13 +4,22 @@ function DataTable({ dataSource, handleData }) {
     const { defaultAlgorithm, darkAlgorithm } = theme;
 
     const columns = [
-        { title: 'ISBN', dataIndex: 'isbn10' },
+        { id: 'ID', dataIndex: 'id' },
         { title: 'Title', dataIndex: 'title' },
-        { title: 'Publisher', dataIndex: 'publisher' },
-        { title: 'Pages', dataIndex: 'pages' },
         { title: 'Authors', dataIndex: 'author' },
-        { title: 'Price', dataIndex: 'price' },
-        { title: 'Buying Price', dataIndex: 'buyingPrice' },
+        { title: 'Publisher', dataIndex: 'publisher' },
+        // { title: 'ISBN10', dataIndex: 'isbn10' },
+        { title: 'ISBN13', dataIndex: 'isbn13' },
+        { title: 'Pages', dataIndex: 'pages' },
+        { title: 'Published Date', dataIndex: 'publishedDate' },
+        // { title: 'Description', dataIndex: 'description' },
+        // { title: 'Categories', dataIndex: 'categories' },
+        // { title: 'Maturity Rating', dataIndex: 'maturityRating' },
+        { title: 'Image', dataIndex: 'image' },
+        // { title: 'Price', dataIndex: 'sellingPrice' },
+        // { title: 'Purchase Price', dataIndex: 'purchasePrice' },
+        // { title: 'Stock', dataIndex: 'stock' },
+        { title: 'Source', dataIndex: 'source' },
     ];
 
     return (

@@ -57,20 +57,60 @@ function App() {
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
       let isbn = '';
       try {
-        isbn = sheet[`A${row}`]?.v; // Check column index
+        isbn = sheet[`A${row}`]?.v;
         setCurrentIsbn(isbn);
-        const price = sheet[`B${row}`]?.v; // Check column index
-        const buyingPrice = sheet[`C${row}`]?.v; // Check column index
+        const purchasePrice = removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
+        const sellingPrice = removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        const stock = removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
 
-        const bookResponse = await getBookDataFromAPI(isbn);
-        const id = bookResponse.items[0]?.id;
-        const title = bookResponse.items[0]?.volumeInfo?.title;
-        const author = bookResponse.items[0]?.volumeInfo?.authors[0];
-        const publisher = bookResponse.items[0]?.volumeInfo?.publisher;
-        const isbn10 = bookResponse.items[0]?.volumeInfo?.industryIdentifiers[0]?.identifier;
-        const pages = bookResponse.items[0]?.volumeInfo?.pageCount;
+        const bookResponse = await getBookDataFromGoogleAPI(isbn);
+        
+        let id, title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source;
+        if (bookResponse.totalItems > 0) {
+          id = bookResponse.items[0]?.id;
+          const volumeInfo = bookResponse.items[0]?.volumeInfo;
+          title = getBookTitle(volumeInfo?.title, volumeInfo?.subtitle);
+          authors = arrayToString(volumeInfo?.authors);
+          publisher = volumeInfo?.publisher;
+          isbn10 = volumeInfo?.industryIdentifiers.find(
+            (identifier) => identifier.type === "ISBN_10"
+          )?.identifier;
+          isbn13 = volumeInfo?.industryIdentifiers.find(
+            (identifier) => identifier.type === "ISBN_13"
+          )?.identifier;
+          pages = volumeInfo?.pageCount;
+          publishedDate = volumeInfo?.publishedDate;
+          description = volumeInfo?.description;
+          categories = arrayToString(volumeInfo?.categories);
+          maturityRating = volumeInfo?.maturityRating;
+          const { medium, large, extraLarge } = volumeInfo?.imageLinks;
+          image = extraLarge || large || medium;
+          source = 'Google Books';
+        } 
+        else {          
+          const bookResponseFromOL = await getBookDataFromOpenLibraryAPI(isbn);          
+          
+          const  bookItem  = bookResponseFromOL.docs[0];
+          id = bookItem?.key;
+          title = getBookTitle(bookItem?.title, bookItem?.subtitle);
+          authors = arrayToString(bookItem?.author_name);
+          publisher = bookItem?.publisher? bookItem?.publisher[bookItem?.publisher.length - 1]:'';
+          isbn10 = isbn.toString().length === 13
+            ? isbn.toString().slice(-10)
+            : null; // Set isbn10 to null if not 13 digits
+          isbn13 = isbn.toString().length === 13
+            ? isbn
+            : null; // Set isbn13 to null if not 13 digits
+          pages = bookItem?.number_of_pages_median;
+          publishedDate = bookItem?.publish_date? bookItem?.publish_date[bookItem?.publish_date.length - 1]:'';
+          categories = arrayToString(bookItem?.subject);
+          image = bookItem?.cover_edition_key;
+          source = 'Open Library';
 
-        setBookData((prevData) => [...prevData, { isbn10, title, author, publisher, pages, price, buyingPrice, key: id }]);
+          console.info('Book data:', { title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, sellingPrice, purchasePrice, stock });
+        }
+
+        setBookData((prevData) => [...prevData, { title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, sellingPrice, purchasePrice, stock, key: id }]);
 
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
@@ -109,9 +149,16 @@ function App() {
     }
   };
 
-  const getBookDataFromAPI = async (isbn) => {
-    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
-    const response = await axios.get(apiUrl); // Handle errors and retries
+  const getBookDataFromGoogleAPI = async (isbn) => {
+    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
+    const response = await axios.get(apiUrl); // TODO: Handle errors and retries
+
+    return response.data;
+  };
+
+  const getBookDataFromOpenLibraryAPI = async (isbn) => {
+    const apiUrl = `https://openlibrary.org/search.json?q=${isbn}&fields=*&limit=1`;
+    const response = await axios.get(apiUrl); // TODO: Handle errors and retries
 
     return response.data;
   };
@@ -123,7 +170,35 @@ function App() {
     XLSX.writeFile(workbook, 'book_data.xlsx');
   };
 
+  function removeTextAndConvertToNumber(text) {
+    // Remove all characters except numbers, ".", "+" or "-".
+    const numberString = text.replace(/[^0-9\-+\.]/g, "");
 
+    // If the string is empty or contains only non-numeric characters, return null.
+    if (!numberString) {
+      return null;
+    }
+
+    // Try to convert the string to a number.
+    return parseFloat(numberString);
+  }
+
+  function arrayToString(array) {
+    return array? array.join(', '):'';
+  }
+
+    /**
+   * Retrieve the book title with optional subtitle.
+   *
+   * @param {string} title - the main title of the book
+   * @param {string} subtitle - the optional subtitle of the book
+   * @return {string} the complete book title including the subtitle if available
+   */
+  function getBookTitle(titleNode, subtitleNode) {
+    const title = titleNode || '';
+          const subtitle = subtitleNode || '';          
+    return subtitle ? `${title} - ${subtitle}` : title;
+  }
 
   function ExcelInput(props) {
     const {
@@ -188,6 +263,7 @@ function App() {
           </div>
 
         </Alert>
+
         {progress > 0 && (
           <div>
             <div className='clearfix'>
