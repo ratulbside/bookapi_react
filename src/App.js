@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx'; // For Excel file creation
 import DataTable from "./components/DataTable.js";
 
 /*React Bootstrap components*/
-import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle } from 'reactstrap';
+import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle, Badge } from 'reactstrap';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -65,7 +65,7 @@ function App() {
 
         const bookResponse = await getBookDataFromGoogleAPI(isbn);
 
-        let id, title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source;
+        let id, title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, bookFound = false;
         if (bookResponse.totalItems > 0) {
           id = bookResponse.items[0]?.id;
           const volumeInfo = bookResponse.items[0]?.volumeInfo;
@@ -86,36 +86,41 @@ function App() {
           const { medium, large, extraLarge } = volumeInfo?.imageLinks;
           image = extraLarge || large || medium;
           source = 'Google Books';
+          bookFound = true;
         }
         else {
           const bookResponseFromOL = await getBookDataFromOpenLibraryAPI(isbn);
-
-          const bookItem = bookResponseFromOL.docs[0];
-          id = bookItem?.key;
-          title = getBookTitle(bookItem?.title, bookItem?.subtitle);
-          authors = arrayToString(bookItem?.author_name);
-          publisher = bookItem?.publisher ? bookItem?.publisher[bookItem?.publisher.length - 1] : '';
-          isbn10 = isbn.toString().length === 13
-            ? isbn.toString().slice(-10)
-            : null; // Set isbn10 to null if not 13 digits
-          isbn13 = isbn.toString().length === 13
-            ? isbn
-            : null; // Set isbn13 to null if not 13 digits
-          pages = bookItem?.number_of_pages_median;
-          publishedDate = bookItem?.publish_date ? bookItem?.publish_date[bookItem?.publish_date.length - 1] : '';
-          categories = arrayToString(bookItem?.subject);
-          image = bookItem?.cover_edition_key;
-          source = 'Open Library';
-
-          console.info('Book data:', { title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, sellingPrice, purchasePrice, stock });
+          if (bookResponseFromOL.numFound > 0) {
+            const bookItem = bookResponseFromOL.docs[0];
+            id = bookItem?.key;
+            title = getBookTitle(bookItem?.title, bookItem?.subtitle);
+            authors = arrayToString(bookItem?.author_name);
+            publisher = bookItem?.publisher ? bookItem?.publisher[bookItem?.publisher.length - 1] : '';
+            isbn10 = isbn.toString().length === 13
+              ? isbn.toString().slice(-10)
+              : null; // Set isbn10 to null if not 13 digits
+            isbn13 = isbn.toString().length === 13
+              ? isbn
+              : null; // Set isbn13 to null if not 13 digits
+            pages = bookItem?.number_of_pages_median;
+            publishedDate = bookItem?.publish_date ? bookItem?.publish_date[bookItem?.publish_date.length - 1] : '';
+            categories = arrayToString(bookItem?.subject);
+            image = bookItem?.cover_edition_key;
+            source = 'Open Library';
+            bookFound = true;
+          } else {
+            setErrors((prevErrors) => [...prevErrors, formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)]);
+          }
         }
 
-        setBookData((prevData) => [...prevData, { title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, sellingPrice, purchasePrice, stock, key: id }]);
+        if (bookFound) {
+          setBookData((prevData) => [...prevData, { title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, sellingPrice, purchasePrice, stock, key: id }]);
+        }
 
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
       } catch (error) {
-        setErrors((prevErrors) => [...prevErrors, `Error processing ISBN ${isbn}: ${error.message}`]);
+        setErrors((prevErrors) => [...prevErrors, formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`)]);
       }
     }
   };
@@ -185,6 +190,16 @@ function App() {
 
   function arrayToString(array) {
     return array ? array.join(', ') : '';
+  }
+
+  function formatErrorOrWarningMessage(level, message) {
+    return (
+      <span>
+        <Badge color={(level === 'error' ? 'danger' : 'warning')}>
+          {(level === 'error' ? 'Error' : 'Warning')}
+        </Badge> {' ' + message}
+      </span>
+    );
   }
 
   /**
