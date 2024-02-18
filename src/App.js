@@ -311,7 +311,7 @@ function App() {
               <Card color="dark" className='mb-3'>
                 <CardBody>
                   <CardTitle tag="h3" className='text-danger'>
-                    Error List
+                    Errors / Warnings
                   </CardTitle>
                   <ListGroup
                     flush
