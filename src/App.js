@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // For API calls
 import { useDropzone } from 'react-dropzone'; // For file selection
 import * as XLSX from 'xlsx'; // For Excel file creation
 import DataTable from "./components/DataTable.js";
@@ -7,7 +6,8 @@ import DataTable from "./components/DataTable.js";
 /*React Bootstrap components*/
 import { Progress, Alert, ListGroup, ListGroupItem, Card, CardBody, CardTitle } from 'reactstrap';
 
-import * as Util from './components/Utility.js';
+import * as Util from './Utilities/Utility.js';
+import * as API from './Utilities/ApiHandler.js';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -65,7 +65,7 @@ function App() {
         const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
         const stock = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
 
-        const bookResponse = await getBookDataFromGoogleAPI(isbn);
+        const bookResponse = await API.getBookDataFromGoogleAPI(isbn);
 
         let id, title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source, bookFound = false;
         if (bookResponse.totalItems > 0) {
@@ -91,7 +91,7 @@ function App() {
           bookFound = true;
         }
         else {
-          const bookResponseFromOL = await getBookDataFromOpenLibraryAPI(isbn);
+          const bookResponseFromOL = await API.getBookDataFromOpenLibraryAPI(isbn);
           if (bookResponseFromOL.numFound > 0) {
             const bookItem = bookResponseFromOL.docs[0];
             id = bookItem?.key;
@@ -154,20 +154,6 @@ function App() {
       console.error('Error parsing Excel file:', error);
       // Handle error and display appropriate message to user
     }
-  };
-
-  const getBookDataFromGoogleAPI = async (isbn) => {
-    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
-    const response = await axios.get(apiUrl); // TODO: Handle errors and retries
-
-    return response.data;
-  };
-
-  const getBookDataFromOpenLibraryAPI = async (isbn) => {
-    const apiUrl = `https://openlibrary.org/search.json?q=${isbn}&fields=*&limit=1`;
-    const response = await axios.get(apiUrl); // TODO: Handle errors and retries
-
-    return response.data;
   };
 
   const handleExportData = () => {
