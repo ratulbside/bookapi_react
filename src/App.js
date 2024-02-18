@@ -64,7 +64,7 @@ function App() {
         const stock = removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
 
         const bookResponse = await getBookDataFromGoogleAPI(isbn);
-        
+
         let id, title, authors, publisher, isbn10, isbn13, pages, publishedDate, description, categories, maturityRating, image, source;
         if (bookResponse.totalItems > 0) {
           id = bookResponse.items[0]?.id;
@@ -86,15 +86,15 @@ function App() {
           const { medium, large, extraLarge } = volumeInfo?.imageLinks;
           image = extraLarge || large || medium;
           source = 'Google Books';
-        } 
-        else {          
-          const bookResponseFromOL = await getBookDataFromOpenLibraryAPI(isbn);          
-          
-          const  bookItem  = bookResponseFromOL.docs[0];
+        }
+        else {
+          const bookResponseFromOL = await getBookDataFromOpenLibraryAPI(isbn);
+
+          const bookItem = bookResponseFromOL.docs[0];
           id = bookItem?.key;
           title = getBookTitle(bookItem?.title, bookItem?.subtitle);
           authors = arrayToString(bookItem?.author_name);
-          publisher = bookItem?.publisher? bookItem?.publisher[bookItem?.publisher.length - 1]:'';
+          publisher = bookItem?.publisher ? bookItem?.publisher[bookItem?.publisher.length - 1] : '';
           isbn10 = isbn.toString().length === 13
             ? isbn.toString().slice(-10)
             : null; // Set isbn10 to null if not 13 digits
@@ -102,7 +102,7 @@ function App() {
             ? isbn
             : null; // Set isbn13 to null if not 13 digits
           pages = bookItem?.number_of_pages_median;
-          publishedDate = bookItem?.publish_date? bookItem?.publish_date[bookItem?.publish_date.length - 1]:'';
+          publishedDate = bookItem?.publish_date ? bookItem?.publish_date[bookItem?.publish_date.length - 1] : '';
           categories = arrayToString(bookItem?.subject);
           image = bookItem?.cover_edition_key;
           source = 'Open Library';
@@ -184,19 +184,19 @@ function App() {
   }
 
   function arrayToString(array) {
-    return array? array.join(', '):'';
+    return array ? array.join(', ') : '';
   }
 
-    /**
-   * Retrieve the book title with optional subtitle.
-   *
-   * @param {string} title - the main title of the book
-   * @param {string} subtitle - the optional subtitle of the book
-   * @return {string} the complete book title including the subtitle if available
-   */
+  /**
+ * Retrieve the book title with optional subtitle.
+ *
+ * @param {string} title - the main title of the book
+ * @param {string} subtitle - the optional subtitle of the book
+ * @return {string} the complete book title including the subtitle if available
+ */
   function getBookTitle(titleNode, subtitleNode) {
     const title = titleNode || '';
-          const subtitle = subtitleNode || '';          
+    const subtitle = subtitleNode || '';
     return subtitle ? `${title} - ${subtitle}` : title;
   }
 
