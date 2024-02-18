@@ -241,13 +241,22 @@ function App() {
       'text-center',
       'text-bg-dark',
     );
-  }, []);
+
+    const logo = document.getElementById('logo');
+    if (progress > 0 && progress < 100) {
+      logo.classList.remove('App-logo-spin');
+      logo.classList.add('App-logo-heartBeat');
+    } else {
+      logo.classList.remove('App-logo-heartBeat');
+      logo.classList.add('App-logo-spin');
+    }
+  }, [progress]);
 
   return (
     <div className='container d-flex w-100 h-100 p-3 mx-auto flex-column'>
       <main className='px-3'>
         <div>
-          <img src={logo} className="App-logo" alt="logo" />
+          <img id="logo" src={logo} className="App-logo" alt="logo" />
           <h1>Book Data Extractor</h1>
         </div>
         <ExcelInput />
