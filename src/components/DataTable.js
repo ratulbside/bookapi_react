@@ -5,7 +5,7 @@ function DataTable({ dataSource, handleData }) {
 
     const columns = [
         { id: 'ID', dataIndex: 'id' },
-        { title: 'Title', dataIndex: 'title' },
+        { title: 'Title', dataIndex: 'name' },
         { title: 'Authors', dataIndex: 'authors' },
         { title: 'Publisher', dataIndex: 'publisher' },
         // { title: 'ISBN10', dataIndex: 'isbn10' },
@@ -15,7 +15,7 @@ function DataTable({ dataSource, handleData }) {
         // { title: 'Description', dataIndex: 'description' },
         // { title: 'Categories', dataIndex: 'categories' },
         // { title: 'Maturity Rating', dataIndex: 'maturityRating' },
-        { title: 'Image', dataIndex: 'image' },
+        // { title: 'Image', dataIndex: 'image' },
         // { title: 'Price', dataIndex: 'sellingPrice' },
         // { title: 'Purchase Price', dataIndex: 'purchasePrice' },
         // { title: 'Stock', dataIndex: 'stock' },
