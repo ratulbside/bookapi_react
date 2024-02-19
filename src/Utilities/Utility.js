@@ -46,3 +46,37 @@ export function getBookTitle(titleNode, subtitleNode) {
     const subtitle = subtitleNode || '';
     return subtitle ? `${title} - ${subtitle}` : title;
 }
+
+export function createFeaturesString(authors, publisher, isbn13, isbn10, pages, publishedDate, maturityRating) {
+    const features = [];
+
+    if (authors && authors.trim()) {
+        features.push(`Author(s):${authors.trim()}:1:1`);
+    }
+
+    if (publisher && publisher.trim()) {
+        features.push(`Publisher:${publisher.trim()}:2:0`);
+    }
+
+    if (isbn13 && isbn13.trim()) {
+        features.push(`ISBN13:${isbn13.trim()}:3:1`);
+    }
+
+    if (isbn10 && isbn10.trim()) {
+        features.push(`ISBN10:${isbn10.trim()}:4:1`);
+    }
+
+    if (pages && pages.trim()) {
+        features.push(`Pages:${pages.trim()}:5:1`);
+    }
+
+    if (publishedDate && publishedDate.trim()) {
+        features.push(`published Date:${publishedDate.trim()}:6:1`);
+    }
+
+    if (maturityRating && maturityRating.trim()) {
+        features.push(`Maturity Rating:${publishedDate.trim()}:7:1`);
+    }
+
+    return features.join(',');
+}

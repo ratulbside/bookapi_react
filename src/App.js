@@ -61,8 +61,8 @@ function App() {
       try {
         isbn = sheet[`A${row}`]?.v;
         setCurrentIsbn(isbn);
-        const purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
-        const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
+        const purchasePrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
         const quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
 
         const bookResponse = await API.getBookDataFromGoogleAPI(isbn);
@@ -115,12 +115,15 @@ function App() {
           }
         }
 
-        //other information needed for prestashop
-        let active = 1, category = '', price_tax = sellingPrice, price_tin = sellingPrice, id_tax_rules_group = '', wholesale_price = purchasePrice, on_sale = 0, reduction_price = 0, reduction_percent = 0, reduction_from = '', reduction_to = '', reference = isbn13, supplier_reference = '', supplier = '', manufacturer = '', ean13 = '', upc = '', mpn = '', ecotax = '', width = 0, height = 0, depth = 0, weight = 0, delivery_in_stock = '', delivery_out_stock = '', minimal_quantity = 1, low_stock_threshold = '', low_stock_alert = 1, visibility = 1, additional_shipping_cost = 0, unity = '', unit_price = 0, description_short = summary, description = '', meta_title = '', meta_keywords = tags, meta_description = '', link_rewrite = '', available_now = 'In Stock', available_later = '', available_for_order = 1, available_date = '', date_add = '', show_price = 1, image_alt = '', delete_existing_images = 0, features = 'dd  dddd', online_only = 0, condition = '', customizable = 0, uploadable_files = 0, text_fields = 0, out_of_stock = ' jjj', is_virtual = 0, file_url = '', nb_downloadable = 0, date_expiration = '', nb_days_accessible = 0, shop = 0, advanced_stock_management = 1, depends_on_stock = '', warehouse = '', accessories = '';
+        //other information needed for PrestaShop
+        let active = 1, category = '', price_non_tax = sellingPrice, id_tax_rules_group = 1, wholesale_price = purchasePrice, on_sale = 0, reduction_price = 0, reduction_percent = 0, reduction_from = '', reduction_to = '', reference = isbn13, supplier_reference = '', supplier = '', manufacturer = '', ean13 = '', upc = '', mpn = '', ecotax = '', width = 0, height = 0, depth = 0, weight = 0, delivery_in_stock = '', delivery_out_stock = '', minimal_quantity = 1, low_stock_threshold = 0, low_stock_alert = 1, visibility = 'both', additional_shipping_cost = 0, unity = '', unit_price = 0, description_short = '', description = summary, meta_title = '', meta_keywords = tags, meta_description = '', link_rewrite = '', available_now = 'In Stock', available_later = '', available_for_order = 1, available_date = '', date_add = '', show_price = 1, image_alt = '', delete_existing_images = 0, features = '';
+
+        //create features for PrestaShop
+        features = Util.createFeaturesString(authors, publisher, isbn13, isbn10, pages, publishedDate, maturityRating);
 
         if (bookFound) {
           setBookData((prevData) => [...prevData, {
-            key: id, active, name, category, price_tax, price_tin, id_tax_rules_group, wholesale_price, on_sale, reduction_price, reduction_percent, reduction_from, reduction_to, reference, supplier_reference, supplier, manufacturer, ean13, upc, mpn, ecotax, width, height, depth, weight, delivery_in_stock, delivery_out_stock, quantity, minimal_quantity, low_stock_threshold, low_stock_alert, visibility, additional_shipping_cost, unity, unit_price, description_short, description, tags, meta_title, meta_keywords, meta_description, link_rewrite, available_now, available_later, available_for_order, available_date, date_add, show_price, image, image_alt, delete_existing_images, features, online_only, condition, customizable, uploadable_files, text_fields, out_of_stock, is_virtual, file_url, nb_downloadable, date_expiration, nb_days_accessible, shop, advanced_stock_management, depends_on_stock, warehouse, accessories, authors, publisher, isbn10, isbn13, pages, publishedDate, maturityRating, source
+            key: id, active, name, category, price_non_tax, id_tax_rules_group, wholesale_price, on_sale, reduction_price, reduction_percent, reduction_from, reduction_to, reference, supplier_reference, supplier, manufacturer, ean13, upc, mpn, ecotax, width, height, depth, weight, delivery_in_stock, delivery_out_stock, quantity, minimal_quantity, low_stock_threshold, low_stock_alert, visibility, additional_shipping_cost, unity, unit_price, description_short, description, tags, meta_title, meta_keywords, meta_description, link_rewrite, available_now, available_later, available_for_order, available_date, date_add, show_price, image, image_alt, delete_existing_images, features, authors, publisher, isbn10, isbn13, pages, publishedDate, maturityRating, source
           }]);
         }
 
@@ -162,9 +165,22 @@ function App() {
   };
 
   const handleExportData = () => {
-    const worksheet = XLSX.utils.json_to_sheet(bookData);
+    //custom header
+    const heading = [['ID', 'Active (0/1)', 'Name', 'Categories (x,y,z...)', 'Price tax excluded', 'Tax rule ID', 'Cost price', 'On sale (0/1)', 'Discount amount', 'Discount percent', 'Discount from (yyyy-mm-dd)', 'Discount to (yyyy-mm-dd)', 'Reference #', 'Supplier reference #', 'Supplier', 'Brand', 'EAN-13', 'UPC', 'MPN', 'Ecotax', 'Width', 'Height', 'Depth', 'Weight', 'Delivery time of in-stock products:', 'Delivery time of out-of-stock products with allowed orders:', 'Quantity', 'Minimal quantitly', 'Low stock level', 'Receive a low stock alert by email', 'Visibility', 'Additional shipping cost', 'Unit for base price', 'Base price', 'Summary', 'Description', 'Tags (x,y,z...)', 'Meta title', 'Meta keywords', 'Meta description', 'Rewritten URL', 'Label when in stock', 'Label when backorder allowed', 'Available for order (0 = No, 1 = Yes)', 'Product availability date', 'Product creation date', 'Show price (0 = No, 1 = Yes)', 'Image URLs (x,y,z...)', 'Image alt texts (x,y,z...)', 'Delete existing images (0 = No, 1 = Yes)', 'Feature (Name:Value:Position:Customized)', 'Author(s)', 'Publisher', 'ISBN 10', 'ISBN 13', 'Pages', 'Published Date', 'Maturity Rating', 'Source']];
+
+    //New workbook and add our custom header
     const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet([]);
+    XLSX.utils.sheet_add_aoa(worksheet, heading);
+
+    //Avoid overriding and skipping headers
+    XLSX.utils.sheet_add_json(worksheet, bookData, {
+      origin: 'A2',
+      skipHeader: true
+    });
+
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Book Data');
+
     XLSX.writeFile(workbook, 'book_data.xlsx');
   };
 
@@ -282,7 +298,7 @@ function App() {
           </div>
         )}
         {bookData.length > 0 && (
-          <DataTable dataSource={bookData} handleData={handleExportData} />
+          <DataTable dataSource={bookData} handleData={handleExportData} processCompleted={progress === 100} />
         )}
       </main>
       <footer className="mt-auto text-white-50">
