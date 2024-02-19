@@ -1,6 +1,6 @@
 import { Table, Button, ConfigProvider, theme } from 'antd'; // For table component
 
-function DataTable({ dataSource, handleData }) {
+function DataTable({ dataSource, handleData, processCompleted }) {
     const { defaultAlgorithm, darkAlgorithm } = theme;
 
     const columns = [
@@ -30,7 +30,9 @@ function DataTable({ dataSource, handleData }) {
                 }}>
                 <Table columns={columns} dataSource={dataSource} />
 
-                <Button onClick={handleData} className='mb-4'>Export Data</Button>
+                {processCompleted && (
+                    <Button onClick={handleData} className='mb-4'>Export Data</Button>
+                )}
             </ConfigProvider>
         </div>
     )
