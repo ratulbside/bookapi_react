@@ -4,7 +4,7 @@ function DataTable({ dataSource, handleData, processCompleted }) {
     const { defaultAlgorithm, darkAlgorithm } = theme;
 
     const columns = [
-        { id: 'ID', dataIndex: 'id' },
+        { title: 'ID', dataIndex: 'key' },
         { title: 'Title', dataIndex: 'name' },
         { title: 'Authors', dataIndex: 'authors' },
         { title: 'Publisher', dataIndex: 'publisher' },

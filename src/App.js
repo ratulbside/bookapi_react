@@ -69,7 +69,7 @@ function App() {
 
         let id, name, authors, publisher, isbn10, isbn13, pages, publishedDate, summary, tags, maturityRating, image, source, bookFound = false;
         if (bookResponse.totalItems > 0) {
-          id = bookResponse.items[0]?.id;
+          id = isbn;
           const volumeInfo = bookResponse.items[0]?.volumeInfo;
           name = Util.getBookTitle(volumeInfo?.title, volumeInfo?.subtitle);
           authors = Util.arrayToString(volumeInfo?.authors);
@@ -94,7 +94,7 @@ function App() {
           const bookResponseFromOL = await API.getBookDataFromOpenLibraryAPI(isbn);
           if (bookResponseFromOL.numFound > 0) {
             const bookItem = bookResponseFromOL.docs[0];
-            id = bookItem?.key;
+            id = isbn;
             name = Util.getBookTitle(bookItem?.title, bookItem?.subtitle);
             authors = Util.arrayToString(bookItem?.author_name);
             publisher = bookItem?.publisher ? bookItem?.publisher[bookItem?.publisher.length - 1] : '';
@@ -111,7 +111,7 @@ function App() {
             source = 'Open Library';
             bookFound = true;
           } else {
-            setErrors((prevErrors) => [...prevErrors, Util.formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)]);
+            setErrors((prevErrors) => [...prevErrors, {id:crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)}]);
           }
         }
 
@@ -130,7 +130,7 @@ function App() {
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
       } catch (error) {
-        setErrors((prevErrors) => [...prevErrors, Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`)]);
+        setErrors((prevErrors) => [...prevErrors, {id:crypto.randomUUID(), message:Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`)}]);
       }
     }
   };
@@ -288,7 +288,7 @@ function App() {
                     className='mb-3 text-start'
                   >
                     {errors.map((error) => (
-                      <ListGroupItem key={error}>{error}</ListGroupItem>
+                      <ListGroupItem key={error.id}>{error.message}</ListGroupItem>
                     ))}
                   </ListGroup>
 
