@@ -67,9 +67,8 @@ function App() {
 
         const bookResponse = await API.getBookDataFromGoogleAPI(isbn);
 
-        let id, name, authors, publisher, isbn10, isbn13, pages, publishedDate, summary, tags, maturityRating, image, source, bookFound = false;
+        let name, authors, publisher, isbn10, isbn13, pages, publishedDate, summary, tags, maturityRating, image, source;
         if (bookResponse.totalItems > 0) {
-          id = isbn;
           const volumeInfo = bookResponse.items[0]?.volumeInfo;
           name = Util.getBookTitle(volumeInfo?.title, volumeInfo?.subtitle);
           authors = Util.arrayToString(volumeInfo?.authors);
@@ -88,13 +87,11 @@ function App() {
           const { medium, large, extraLarge } = volumeInfo?.imageLinks;
           image = extraLarge || large || medium;
           source = 'Google Books';
-          bookFound = true;
         }
         else {
           const bookResponseFromOL = await API.getBookDataFromOpenLibraryAPI(isbn);
           if (bookResponseFromOL.numFound > 0) {
             const bookItem = bookResponseFromOL.docs[0];
-            id = isbn;
             name = Util.getBookTitle(bookItem?.title, bookItem?.subtitle);
             authors = Util.arrayToString(bookItem?.author_name);
             publisher = bookItem?.publisher ? bookItem?.publisher[bookItem?.publisher.length - 1] : '';
@@ -109,7 +106,6 @@ function App() {
             tags = Util.arrayToString(bookItem?.subject);
             image = bookItem?.cover_edition_key;
             source = 'Open Library';
-            bookFound = true;
           } else {
             setErrors((prevErrors) => [...prevErrors, {id:crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)}]);
           }
@@ -120,12 +116,11 @@ function App() {
 
         //create features for PrestaShop
         features = Util.createFeaturesString(authors, publisher, isbn13, isbn10, pages, publishedDate, maturityRating);
+        const id=isbn;
 
-        if (bookFound) {
-          setBookData((prevData) => [...prevData, {
+        setBookData((prevData) => [...prevData, {
             key: id, active, name, category, price_non_tax, id_tax_rules_group, wholesale_price, on_sale, reduction_price, reduction_percent, reduction_from, reduction_to, reference, supplier_reference, supplier, manufacturer, ean13, upc, mpn, ecotax, width, height, depth, weight, delivery_in_stock, delivery_out_stock, quantity, minimal_quantity, low_stock_threshold, low_stock_alert, visibility, additional_shipping_cost, unity, unit_price, description_short, description, tags, meta_title, meta_keywords, meta_description, link_rewrite, available_now, available_later, available_for_order, available_date, date_add, show_price, image, image_alt, delete_existing_images, features, authors, publisher, isbn10, isbn13, pages, publishedDate, maturityRating, source
           }]);
-        }
 
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
