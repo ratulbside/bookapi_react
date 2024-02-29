@@ -183,12 +183,13 @@ function App() {
   };
 
   const exportJsonData = () => {
+    const dataWrappedJsonString = `{"data":${JSON.stringify(bookData)}}`;
+    console.log(dataWrappedJsonString);
     const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-      JSON.stringify(bookData)
-    )}`;
-    const dataWrappedJsonString = `{'data':${jsonString}}`;
+      dataWrappedJsonString
+      )}`;
     const link = document.createElement("a");
-    link.href = dataWrappedJsonString;
+    link.href = jsonString;
     link.download = "books.json";
 
     link.click();

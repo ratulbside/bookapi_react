@@ -31,7 +31,7 @@ function DataTable({ dataSource, exportExel, exportJson, processCompleted }) {
                 <Table columns={columns} dataSource={dataSource} />
 
                 {processCompleted && (
-                    <div class="d-grid gap-2 d-md-block">
+                    <div className="d-grid gap-2 d-md-block">
                         <Button onClick={exportExel} className='mb-4'>Export as Excel</Button>
                         <Button onClick={exportJson} className='mb-4'>Export as Json</Button>
                     </div>
