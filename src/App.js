@@ -107,7 +107,7 @@ function App() {
             image = bookItem?.cover_edition_key;
             source = 'Open Library';
           } else {
-            setErrors((prevErrors) => [...prevErrors, {id:crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`)}]);
+            setErrors((prevErrors) => [...prevErrors, { id: crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('warning', `Not found ISBN ${isbn}: Not available in Google Books or Open Library`) }]);
           }
         }
 
@@ -116,16 +116,19 @@ function App() {
 
         //create features for PrestaShop
         features = Util.createFeaturesString(authors, publisher, isbn13, isbn10, pages, publishedDate, maturityRating);
-        const id=isbn;
+        const id = isbn;
+
+        // track status of further changes
+        const modifyStatus = 'NOTCHECKED';
 
         setBookData((prevData) => [...prevData, {
-            key: id, active, name, category, price_non_tax, id_tax_rules_group, wholesale_price, on_sale, reduction_price, reduction_percent, reduction_from, reduction_to, reference, supplier_reference, supplier, manufacturer, ean13, upc, mpn, ecotax, width, height, depth, weight, delivery_in_stock, delivery_out_stock, quantity, minimal_quantity, low_stock_threshold, low_stock_alert, visibility, additional_shipping_cost, unity, unit_price, description_short, description, tags, meta_title, meta_keywords, meta_description, link_rewrite, available_now, available_later, available_for_order, available_date, date_add, show_price, image, image_alt, delete_existing_images, features, authors, publisher, isbn10, isbn13, pages, publishedDate, maturityRating, source
-          }]);
+          key: id, active, name, category, price_non_tax, id_tax_rules_group, wholesale_price, on_sale, reduction_price, reduction_percent, reduction_from, reduction_to, reference, supplier_reference, supplier, manufacturer, ean13, upc, mpn, ecotax, width, height, depth, weight, delivery_in_stock, delivery_out_stock, quantity, minimal_quantity, low_stock_threshold, low_stock_alert, visibility, additional_shipping_cost, unity, unit_price, description_short, description, tags, meta_title, meta_keywords, meta_description, link_rewrite, available_now, available_later, available_for_order, available_date, date_add, show_price, image, image_alt, delete_existing_images, features, authors, publisher, isbn10, isbn13, pages, publishedDate, maturityRating, source, modifyStatus
+        }]);
 
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
       } catch (error) {
-        setErrors((prevErrors) => [...prevErrors, {id:crypto.randomUUID(), message:Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`)}]);
+        setErrors((prevErrors) => [...prevErrors, { id: crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`) }]);
       }
     }
   };
@@ -161,7 +164,7 @@ function App() {
 
   const handleExportData = () => {
     //custom header
-    const heading = [['ID', 'Active (0/1)', 'Name', 'Categories (x,y,z...)', 'Price tax excluded', 'Tax rule ID', 'Cost price', 'On sale (0/1)', 'Discount amount', 'Discount percent', 'Discount from (yyyy-mm-dd)', 'Discount to (yyyy-mm-dd)', 'Reference #', 'Supplier reference #', 'Supplier', 'Brand', 'EAN-13', 'UPC', 'MPN', 'Ecotax', 'Width', 'Height', 'Depth', 'Weight', 'Delivery time of in-stock products', 'Delivery time of out-of-stock products with allowed orders', 'Quantity', 'Minimal quantitly', 'Low stock level', 'Receive a low stock alert by email', 'Visibility', 'Additional shipping cost', 'Unit for base price', 'Base price', 'Summary', 'Description', 'Tags (x,y,z...)', 'Meta title', 'Meta keywords', 'Meta description', 'Rewritten URL', 'Label when in stock', 'Label when backorder allowed', 'Available for order (0 = No, 1 = Yes)', 'Product availability date', 'Product creation date', 'Show price (0 = No, 1 = Yes)', 'Image URLs (x,y,z...)', 'Image alt texts (x,y,z...)', 'Delete existing images (0 = No, 1 = Yes)', 'Feature (Name:Value:Position:Customized)', 'Author(s)', 'Publisher', 'ISBN 10', 'ISBN 13', 'Pages', 'Published Date', 'Maturity Rating', 'Source']];
+    const heading = [['ID', 'Active (0/1)', 'Name', 'Categories (x,y,z...)', 'Price tax excluded', 'Tax rule ID', 'Cost price', 'On sale (0/1)', 'Discount amount', 'Discount percent', 'Discount from (yyyy-mm-dd)', 'Discount to (yyyy-mm-dd)', 'Reference #', 'Supplier reference #', 'Supplier', 'Brand', 'EAN-13', 'UPC', 'MPN', 'Ecotax', 'Width', 'Height', 'Depth', 'Weight', 'Delivery time of in-stock products', 'Delivery time of out-of-stock products with allowed orders', 'Quantity', 'Minimal quantitly', 'Low stock level', 'Receive a low stock alert by email', 'Visibility', 'Additional shipping cost', 'Unit for base price', 'Base price', 'Summary', 'Description', 'Tags (x,y,z...)', 'Meta title', 'Meta keywords', 'Meta description', 'Rewritten URL', 'Label when in stock', 'Label when backorder allowed', 'Available for order (0 = No, 1 = Yes)', 'Product availability date', 'Product creation date', 'Show price (0 = No, 1 = Yes)', 'Image URLs (x,y,z...)', 'Image alt texts (x,y,z...)', 'Delete existing images (0 = No, 1 = Yes)', 'Feature (Name:Value:Position:Customized)', 'Author(s)', 'Publisher', 'ISBN 10', 'ISBN 13', 'Pages', 'Published Date', 'Maturity Rating', 'Source', 'Status']];
 
     //New workbook and add our custom header
     const workbook = XLSX.utils.book_new();
@@ -177,6 +180,18 @@ function App() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Book Data');
 
     XLSX.writeFile(workbook, 'book_data.xlsx');
+  };
+
+  const exportJsonData = () => {
+    const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+      JSON.stringify(bookData)
+    )}`;
+    const dataWrappedJsonString = `{'data':${jsonString}}`;
+    const link = document.createElement("a");
+    link.href = dataWrappedJsonString;
+    link.download = "books.json";
+
+    link.click();
   };
 
   function ExcelInput(props) {
@@ -293,7 +308,7 @@ function App() {
           </div>
         )}
         {bookData.length > 0 && (
-          <DataTable dataSource={bookData} handleData={handleExportData} processCompleted={progress === 100} />
+          <DataTable dataSource={bookData} exportExel={handleExportData} exportJson={exportJsonData} processCompleted={progress === 100} />
         )}
       </main>
       <footer className="mt-auto text-white-50">

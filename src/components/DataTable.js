@@ -1,6 +1,6 @@
 import { Table, Button, ConfigProvider, theme } from 'antd'; // For table component
 
-function DataTable({ dataSource, handleData, processCompleted }) {
+function DataTable({ dataSource, exportExel, exportJson, processCompleted }) {
     const { defaultAlgorithm, darkAlgorithm } = theme;
 
     const columns = [
@@ -31,7 +31,10 @@ function DataTable({ dataSource, handleData, processCompleted }) {
                 <Table columns={columns} dataSource={dataSource} />
 
                 {processCompleted && (
-                    <Button onClick={handleData} className='mb-4'>Export Data</Button>
+                    <div class="d-grid gap-2 d-md-block">
+                        <Button onClick={exportExel} className='mb-4'>Export as Excel</Button>
+                        <Button onClick={exportJson} className='mb-4'>Export as Json</Button>
+                    </div>
                 )}
             </ConfigProvider>
         </div>
