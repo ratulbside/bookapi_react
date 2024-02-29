@@ -78,5 +78,5 @@ export function createFeaturesString(authors, publisher, isbn13, isbn10, pages, 
         features.push(`Maturity Rating:${publishedDate.trim()}:7:1`);
     }
 
-    return features.join(',');
+    return features.join(process.env.REACT_APP_FIELD_SEPARATOR);
 }
