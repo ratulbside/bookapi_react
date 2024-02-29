@@ -59,11 +59,12 @@ function App() {
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
       let isbn = '';
       try {
-        isbn = sheet[`A${row}`]?.v;
-        setCurrentIsbn(isbn);
-        const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
-        const purchasePrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        const bookName = Util.removeTextAndConvertToNumber(sheet[`A${row}`]?.v);
+        const purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
+        const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
         const quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
+        isbn = sheet[`E${row}`]?.v;
+        setCurrentIsbn(isbn);
 
         const bookResponse = await API.getBookDataFromGoogleAPI(isbn);
 
@@ -120,6 +121,10 @@ function App() {
 
         // track status of further changes
         const modifyStatus = 'NOTCHECKED';
+
+        if (!name.trim()) {
+          name = bookName;
+        }
 
         setBookData((prevData) => [...prevData, {
           key: id, active, name, category, price_non_tax, id_tax_rules_group, wholesale_price, on_sale, reduction_price, reduction_percent, reduction_from, reduction_to, reference, supplier_reference, supplier, manufacturer, ean13, upc, mpn, ecotax, width, height, depth, weight, delivery_in_stock, delivery_out_stock, quantity, minimal_quantity, low_stock_threshold, low_stock_alert, visibility, additional_shipping_cost, unity, unit_price, description_short, description, tags, meta_title, meta_keywords, meta_description, link_rewrite, available_now, available_later, available_for_order, available_date, date_add, show_price, image, image_alt, delete_existing_images, features, authors, publisher, isbn10, isbn13, pages, publishedDate, maturityRating, source, modifyStatus
@@ -184,10 +189,9 @@ function App() {
 
   const exportJsonData = () => {
     const dataWrappedJsonString = `{"data":${JSON.stringify(bookData)}}`;
-    console.log(dataWrappedJsonString);
     const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
       dataWrappedJsonString
-      )}`;
+    )}`;
     const link = document.createElement("a");
     link.href = jsonString;
     link.download = "books.json";
