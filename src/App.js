@@ -68,7 +68,7 @@ function App() {
 
         const bookResponse = await API.getBookDataFromGoogleAPI(isbn);
 
-        let name, authors, publisher, isbn10, isbn13, pages, publishedDate, summary, tags, maturityRating, image, source;
+        let name = "", authors = "", publisher = "", isbn10 = "", isbn13 = "", pages = "", publishedDate = "", summary = "", tags = "", maturityRating = "", image = "", source = "";
         if (bookResponse.totalItems > 0) {
           const volumeInfo = bookResponse.items[0]?.volumeInfo;
           name = Util.getBookTitle(volumeInfo?.title, volumeInfo?.subtitle);
