@@ -59,7 +59,7 @@ function App() {
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
       let isbn = '', bookName = '', purchasePrice = 0, sellingPrice = 0, quantity = 0;
       try {
-        bookName = Util.removeTextAndConvertToNumber(sheet[`A${row}`]?.v);
+        bookName = sheet[`A${row}`]?.v;
         purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
         sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
         quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
