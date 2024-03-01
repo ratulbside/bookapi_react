@@ -85,8 +85,11 @@ function App() {
           summary = volumeInfo?.description;
           tags = Util.arrayToString(volumeInfo?.categories);
           maturityRating = volumeInfo?.maturityRating;
-          const { medium, large, extraLarge } = volumeInfo?.imageLinks;
-          image = extraLarge || large || medium;
+          // const { medium, large, extraLarge } = volumeInfo?.imageLinks;
+          image = volumeInfo?.imageLinks?.extraLarge ||
+              volumeInfo?.imageLinks?.large ||
+              volumeInfo?.imageLinks?.medium ||
+              ''; 
           source = 'Google Books';
         }
         else {
