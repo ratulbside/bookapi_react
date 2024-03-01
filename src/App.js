@@ -57,12 +57,12 @@ function App() {
     setTotalRecords(totalRows - 1);
 
     for (let row = 2; row <= totalRows; row++) { // Start from row 2
-      let isbn = '';
+      let isbn = '', bookName = '', purchasePrice = 0, sellingPrice = 0, quantity = 0;
       try {
-        const bookName = Util.removeTextAndConvertToNumber(sheet[`A${row}`]?.v);
-        const purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
-        const sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
-        const quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
+        bookName = Util.removeTextAndConvertToNumber(sheet[`A${row}`]?.v);
+        purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
+        sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
         isbn = sheet[`E${row}`]?.v;
         setCurrentIsbn(isbn);
 
@@ -132,8 +132,16 @@ function App() {
 
         setCurrentRowNumber(row - 1);
         setProgress(Math.round((row / totalRows) * 100));
+
+        // Wait for 2 seconds before the next iteration
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         setErrors((prevErrors) => [...prevErrors, { id: crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`) }]);
+
+        //set book data anyway
+        setBookData((prevData) => [...prevData, {
+          key: isbn, active: 1, name: bookName, category: '', price_non_tax: sellingPrice, id_tax_rules_group: 1, wholesale_price: purchasePrice, on_sale: 0, reduction_price: 0, reduction_percent: 0, reduction_from: '', reduction_to: '', reference: isbn, supplier_reference: '', supplier: '', manufacturer: '', ean13: '', upc: '', mpn: '', ecotax: '', width: '', height: '', depth: '', weight: '', delivery_in_stock: '', delivery_out_stock: '', quantity: quantity, minimal_quantity: 1, low_stock_threshold: 0, low_stock_alert: 1, visibility: 'both', additional_shipping_cost: 0, unity: '', unit_price: 0, description_short: '', description: '', tags: '', meta_title: '', meta_keywords: '', meta_description: '', link_rewrite: '', available_now: 'In Stock', available_later: '', available_for_order: 1, available_date: '', date_add: '', show_price: 1, image: '', image_alt: '', delete_existing_images: 0, features: '', authors: '', publisher: '', isbn10: '', isbn13: isbn, pages: '', publishedDate: '', maturityRating: '', source: '', modifyStatus: 'NOTCHECKED'
+        }]);
       }
     }
   };
