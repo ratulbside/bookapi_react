@@ -61,7 +61,7 @@ function App() {
       try {
         bookName = sheet[`A${row}`]?.v;
         purchasePrice = Util.removeTextAndConvertToNumber(sheet[`B${row}`]?.v);
-        sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v);
+        sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v, true);
         quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
         isbn = sheet[`E${row}`]?.v;
         setCurrentIsbn(isbn);
@@ -87,9 +87,9 @@ function App() {
           maturityRating = volumeInfo?.maturityRating;
           // const { medium, large, extraLarge } = volumeInfo?.imageLinks;
           image = volumeInfo?.imageLinks?.extraLarge ||
-              volumeInfo?.imageLinks?.large ||
-              volumeInfo?.imageLinks?.medium ||
-              ''; 
+            volumeInfo?.imageLinks?.large ||
+            volumeInfo?.imageLinks?.medium ||
+            '';
           source = 'Google Books';
         }
         else {
@@ -144,6 +144,55 @@ function App() {
         //set book data anyway
         setBookData((prevData) => [...prevData, {
           key: isbn, active: 1, name: bookName, category: '', price_non_tax: sellingPrice, id_tax_rules_group: 1, wholesale_price: purchasePrice, on_sale: 0, reduction_price: 0, reduction_percent: 0, reduction_from: '', reduction_to: '', reference: isbn, supplier_reference: '', supplier: '', manufacturer: '', ean13: '', upc: '', mpn: '', ecotax: '', width: '', height: '', depth: '', weight: '', delivery_in_stock: '', delivery_out_stock: '', quantity: quantity, minimal_quantity: 1, low_stock_threshold: 0, low_stock_alert: 1, visibility: 'both', additional_shipping_cost: 0, unity: '', unit_price: 0, description_short: '', description: '', tags: '', meta_title: '', meta_keywords: '', meta_description: '', link_rewrite: '', available_now: 'In Stock', available_later: '', available_for_order: 1, available_date: '', date_add: '', show_price: 1, image: '', image_alt: '', delete_existing_images: 0, features: '', authors: '', publisher: '', isbn10: '', isbn13: isbn, pages: '', publishedDate: '', maturityRating: '', source: '', modifyStatus: 'NOTCHECKED'
+        }]);
+      }
+    }
+  };
+
+  const processExcelDataAsJson = async () => {
+    if (!file) {
+      setAlertVisible(true);
+      return; // Handle missing file error
+    }
+
+    // Disable Dropzone and button after processing starts
+    setIsDropzoneDisabled(true);
+    setIsProcessButtonDisabled(true);
+
+    const sheet = await parseExcelFile(file); // Implement Excel parsing
+
+    setBookData([]);
+    setProgress(0);
+    setTotalRecords(0);
+    setCurrentRowNumber(0);
+    setErrors([]);
+
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    let totalRows = (range.e.r - range.s.r) + 1;
+    setTotalRecords(totalRows - 1);
+
+    for (let row = 2; row <= totalRows; row++) { // Start from row 2
+      let isbn = '', bookName = '', sellingPrice = 0, quantity = 0;
+      try {
+        bookName = sheet[`A${row}`]?.v;
+        sellingPrice = Util.removeTextAndConvertToNumber(sheet[`C${row}`]?.v, true);
+        quantity = Util.removeTextAndConvertToNumber(sheet[`D${row}`]?.v);
+        isbn = sheet[`E${row}`]?.v;
+        setCurrentIsbn(isbn);
+
+        setBookData((prevData) => [...prevData, {
+          key: isbn, name: bookName, price: sellingPrice, quantity
+        }]);
+
+        setCurrentRowNumber(row - 1);
+        setProgress(Math.round((row / totalRows) * 100));
+
+      } catch (error) {
+        setErrors((prevErrors) => [...prevErrors, { id: crypto.randomUUID(), message: Util.formatErrorOrWarningMessage('error', `Error processing ISBN ${isbn}: ${error.message}`) }]);
+
+        //set book data anyway
+        setBookData((prevData) => [...prevData, {
+          key: isbn, name: bookName, price: sellingPrice, quantity
         }]);
       }
     }
@@ -271,7 +320,8 @@ function App() {
         </div>
         <ExcelInput />
         <div className='m-3'>
-          <button onClick={isProcessButtonDisabled ? null : processExcelData} disabled={isProcessButtonDisabled} className='btn btn-lg btn-light fw-bold border-white bg-white'>Process Data</button>
+          <button onClick={isProcessButtonDisabled ? null : processExcelData} disabled={isProcessButtonDisabled} className='btn btn-lg btn-light fw-bold border-white bg-white me-3'>Process Data</button>
+          <button onClick={isProcessButtonDisabled ? null : processExcelDataAsJson} disabled={isProcessButtonDisabled} className='btn btn-lg btn-light fw-bold border-white bg-white'>Prepare JSON Only</button>
         </div>
         <Alert color="warning" className='d-flex align-items-center' isOpen={alertVisible} toggle={onDismiss}>
           <svg xmlns="http://www.w3.org/2000/svg" className="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
@@ -280,7 +330,6 @@ function App() {
           <div>
             Why so hungry? Please select a file first.
           </div>
-
         </Alert>
 
         {progress > 0 && (
