@@ -1,16 +1,28 @@
 import { Badge } from 'reactstrap';
 
-export function removeTextAndConvertToNumber(text) {
-    // Remove all characters except numbers, ".", "+" or "-".
-    const numberString = text.replace(/[^0-9\-+\.]/g, "");
+export function removeTextAndConvertToNumber(text, multipleOfTen = false) {
+    if (!text) return 0;
 
-    // If the string is empty or contains only non-numeric characters, return null.
-    if (!numberString) {
-        return null;
+    //check whether it is already a number
+    if (isNaN(text)) {
+        // Remove all characters except numbers, ".", "+" or "-".
+        const numberString = text.replace(/[^0-9\-+.]/g, "");
+
+        // If the string is empty or contains only non-numeric characters, return null.
+        if (!numberString) {
+            return 0;
+        }
+
+        // Try to convert the string to a number.
+        const number = parseFloat(numberString);
+        if (multipleOfTen) {
+            return Math.round(number / 10) * 10;
+        }
+        return number;
     }
 
-    // Try to convert the string to a number.
-    return parseFloat(numberString);
+    //it's already a number
+    return text;
 }
 
 export function arrayToString(array) {
