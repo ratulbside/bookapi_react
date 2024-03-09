@@ -62,32 +62,32 @@ export function getBookTitle(titleNode, subtitleNode) {
 export function createFeaturesString(authors, publisher, isbn13, isbn10, pages, publishedDate, maturityRating) {
     const features = [];
 
-    if (authors && authors.trim()) {
+    if (authors !== null && authors !== undefined && authors.trim() !== '') {
         features.push(`Author(s):${authors.trim()}:1:1`);
     }
 
-    if (publisher && publisher.trim()) {
+    if (publisher !== null && publisher !== undefined && publisher.trim() !== '') {
         features.push(`Publisher:${publisher.trim()}:2:0`);
     }
 
-    if (isbn13 && isbn13.toString().trim()) {
+    if (isbn13 !== null && isbn13 !== undefined && isbn13.toString() !== null && isbn13.toString().trim() !== '') {
         features.push(`ISBN13:${isbn13.toString().trim()}:3:1`);
     }
 
-    if (isbn10 && isbn10.toString().trim()) {
+    if (isbn10 !== null && isbn10 !== undefined && isbn10.toString() !== null && isbn10.toString().trim() !== '') {
         features.push(`ISBN10:${isbn10.toString().trim()}:4:1`);
     }
 
-    if (pages && pages.toString().trim()) {
+    if (pages !== null && pages !== undefined && pages.toString() !== null && pages.toString().trim() !== '') {
         features.push(`Pages:${pages.toString().trim()}:5:1`);
     }
 
-    if (publishedDate && publishedDate.toString().trim()) {
+    if (publishedDate !== null && publishedDate !== undefined && publishedDate.toString() !== null && publishedDate.toString().trim() !== '') {
         features.push(`published Date:${publishedDate.toString().trim()}:6:1`);
     }
 
-    if (maturityRating && maturityRating.trim()) {
-        features.push(`Maturity Rating:${publishedDate.trim()}:7:1`);
+    if (maturityRating !== null && maturityRating !== undefined && maturityRating.trim() !== '') {
+        features.push(`Maturity Rating:${maturityRating.trim()}:7:1`);
     }
 
     return features.join(process.env.REACT_APP_FIELD_SEPARATOR);

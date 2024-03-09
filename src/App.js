@@ -125,7 +125,7 @@ function App() {
         // track status of further changes
         const modifyStatus = 'NOTCHECKED';
 
-        if (!name.trim()) {
+        if (!name || !name.trim()) {
           name = bookName;
         }
 
